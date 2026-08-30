@@ -1,0 +1,27 @@
+# Environment
+.env
+venv/
+.venv/
+__pycache__/
+*.pyc
+.claude/settings.json
+
+# Qdrant data (bind mount — không đưa vào git)
+qdrant_storage/
+
+# SQLite
+*.db
+*.sqlite3
+
+# Langfuse / MLflow local data nếu có sau này
+mlruns/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
