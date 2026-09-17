@@ -1,12 +1,16 @@
 # Environment
 .env
-venv/
-.venv/
+
+# Python
 __pycache__/
 *.pyc
+*.py[cod]
+.pytest_cache/
+
+# Claude 
 .claude/settings.json
 
-# Qdrant data (bind mount — không đưa vào git)
+# Qdrant data 
 qdrant_storage/
 
 # SQLite
@@ -20,8 +24,13 @@ mlruns/
 .vscode/
 .idea/
 
+# Local data
+data/*
+!data/.gitkeep
+
 # OS
 .DS_Store
+Thumbs.db
 
 # Jupyter
 .ipynb_checkpoints/
