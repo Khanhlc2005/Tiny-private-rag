@@ -19,7 +19,10 @@ class OllamaClient:
             "model": self.model,
             "messages": messages,
             "think": False,
-            "stream": False
+            "stream": False,
+            "options": {
+                "num_predict": settings.ollama_num_predict
+            }
         }
 
         try:
@@ -47,6 +50,7 @@ class OllamaClient:
                 f"Không thể kết nối tới Ollama tại {self.base_url}. "
                 "Hãy kiểm tra Ollama server"
             ) from exc
+        
         except httpx.TimeoutException as exc:
             raise RuntimeError(
                 "Ollama phản hồi quá lâu và request đã timeout."
@@ -70,7 +74,10 @@ class OllamaClient:
             "model": self.model,
             "messages": messages,
             "think": False,
-            "stream": True
+            "stream": True,
+            "options": {
+                "num_predict": settings.ollama_num_predict
+            }
         }
 
         try:

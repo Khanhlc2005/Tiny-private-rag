@@ -10,4 +10,4 @@ Hệ thống RAG offline, chạy local hoàn toàn — không cần Internet, ph
 - Backend: FastAPI + Pydantic + SQLModel
 - UI: Streamlit
 - Evaluation: RAGAS
-- Observability: Langfuse (self-hosted)=
+- Observability: Langfuse (self-hosted)

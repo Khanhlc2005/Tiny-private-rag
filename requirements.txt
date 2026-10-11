@@ -3,3 +3,6 @@ pydantic
 pydantic-settings
 PyMuPDF
 pytest
+fastapi
+uvicorn
+qdrant-client
