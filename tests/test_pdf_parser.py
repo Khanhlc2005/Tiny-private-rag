@@ -74,13 +74,21 @@ def test_parse_pdf_returns_page_per_page(tmp_path):
     assert [p.page for p in result] == [1, 2]
     assert "Trang mot" in result[0].text
     assert "Trang hai" in result[1].text
-    assert all(p.source_file == str(pdf) for p in result)
+    assert all(p.source_file == pdf.name for p in result)
 
 
 def test_parse_pdf_accepts_str_path(tmp_path):
     pdf = make_pdf(tmp_path / "ok.pdf", ["Noi dung"])
     assert len(parse_pdf(str(pdf))) == 1
 
+def test_parse_pdf_same_filename_in_different_dirs_gives_same_source_file(tmp_path):
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    pdf_a = make_pdf(tmp_path / "a" / "doc.pdf", ["Noi dung A"])
+    pdf_b = make_pdf(tmp_path / "b" / "doc.pdf", ["Noi dung B"])
+
+    assert parse_pdf(pdf_a)[0].source_file == "doc.pdf"
+    assert parse_pdf(pdf_b)[0].source_file == "doc.pdf"
 
 def test_parse_pdf_skips_empty_pages_keeps_original_numbers(tmp_path, caplog):
     pdf = make_pdf(tmp_path / "gap.pdf", ["Trang mot", "", "Trang ba"])
