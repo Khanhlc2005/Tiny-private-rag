@@ -1,7 +1,10 @@
-import httpx
 import json
-from typing import TypedDict, Literal
+from typing import Literal, TypedDict
+
+import httpx
+
 from app.core.config import settings
+
 
 class Message(TypedDict):
     role: Literal["system", "user", "assistant"]
