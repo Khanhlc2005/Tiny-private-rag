@@ -5,4 +5,4 @@ PyMuPDF
 pytest
 fastapi
 uvicorn
-qdrant-client
+qdrant-client==1.19.1
