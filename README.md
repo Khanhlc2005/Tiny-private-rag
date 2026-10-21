@@ -12,16 +12,16 @@ Bài toán: nhiều tổ chức có tài liệu nội bộ không thể đưa l�
 
 ## Tech Stack
 
-| Thành phần | Công nghệ | Trạng thái |
-|---|---|---|
-| LLM | `gemma4:e2b-it-qat` qua Ollama (`--think=false`) | Đã có client |
-| PDF parser | PyMuPDF | Đã có |
-| Vector DB | Qdrant (Docker) | Chạy được, chưa tích hợp |
-| Embedding | BAAI/bge-m3 (dense + sparse, RRF fusion) | Dự kiến |
-| Backend | FastAPI + Pydantic + SQLModel | Dự kiến (mới có skeleton) |
-| UI | Streamlit | Dự kiến |
-| Evaluation | RAGAS | Dự kiến |
-| Observability | Langfuse (self-hosted) | Dự kiến |
+| Thành phần    | Công nghệ                                        | Trạng thái                |
+| ------------- | ------------------------------------------------ | ------------------------- |
+| LLM           | `gemma4:e2b-it-qat` qua Ollama (`--think=false`) | Đã có client              |
+| PDF parser    | PyMuPDF                                          | Đã có                     |
+| Vector DB     | Qdrant v1.19.1 (Docker)                          | Chạy được, chưa tích hợp  |
+| Embedding     | BAAI/bge-m3 (dense + sparse, RRF fusion)         | Dự kiến                   |
+| Backend       | FastAPI + Pydantic + SQLModel                    | Dự kiến (mới có skeleton) |
+| UI            | Streamlit                                        | Dự kiến                   |
+| Evaluation    | RAGAS                                            | Dự kiến                   |
+| Observability | Langfuse (self-hosted)                           | Dự kiến                   |
 
 ## Requirements
 
@@ -45,11 +45,11 @@ cp .env.example .env             # chỉnh nếu cần
 
 Biến môi trường trong `.env`:
 
-| Biến | Mặc định | Ý nghĩa |
-|---|---|---|
-| `OLLAMA_BASE_URL` | `http://localhost:11434` | Địa chỉ Ollama server |
-| `OLLAMA_MODEL` | `gemma4:e2b-it-qat` | Model dùng để sinh câu trả lời |
-| `OLLAMA_NUM_PREDICT` | `512` | Số token tối đa mỗi lần sinh |
+| Biến                 | Mặc định                 | Ý nghĩa                        |
+| -------------------- | ------------------------ | ------------------------------ |
+| `OLLAMA_BASE_URL`    | `http://localhost:11434` | Địa chỉ Ollama server          |
+| `OLLAMA_MODEL`       | `gemma4:e2b-it-qat`      | Model dùng để sinh câu trả lời |
+| `OLLAMA_NUM_PREDICT` | `512`                    | Số token tối đa mỗi lần sinh   |
 
 ## Running Qdrant
 
@@ -59,6 +59,7 @@ docker compose ps                # container tinyrag_qdrant phải ở trạng t
 ```
 
 Kiểm tra Qdrant:
+
 - Dashboard: <http://localhost:6333/dashboard>
 - REST API: `curl http://localhost:6333/collections`
 - gRPC: cổng `6334`
