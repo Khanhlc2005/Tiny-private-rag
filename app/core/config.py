@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "tiny_rag_chunks"
 
+    chunk_size: int = 800
+    chunk_overlap: int = 100
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

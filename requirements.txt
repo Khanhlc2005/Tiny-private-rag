@@ -6,3 +6,4 @@ pytest
 fastapi
 uvicorn
 qdrant-client==1.19.1
+langchain-text-splitters
