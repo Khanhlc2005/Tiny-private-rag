@@ -17,7 +17,7 @@ Bài toán: nhiều tổ chức có tài liệu nội bộ không thể đưa l�
 | LLM           | `gemma4:e2b-it-qat` qua Ollama (`--think=false`) | Đã có client              |
 | PDF parser    | PyMuPDF                                          | Đã có                     |
 | Vector DB     | Qdrant v1.19.1 (Docker)                          | Chạy được, chưa tích hợp  |
-| Embedding     | BAAI/bge-m3 (dense + sparse, RRF fusion)         | Dự kiến                   |
+| Embedding     | BAAI/bge-m3 (dense + sparse, RRF fusion)         | Đã có embedder            |
 | Backend       | FastAPI + Pydantic + SQLModel                    | Dự kiến (mới có skeleton) |
 | UI            | Streamlit                                        | Dự kiến                   |
 | Evaluation    | RAGAS                                            | Dự kiến                   |
@@ -39,6 +39,7 @@ cd Tiny-private-rag
 python3 -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+pip install -r requirements-ml.txt   # chỉ khi chạy embedding (FlagEmbedding, kéo theo torch, dung lượng lớn)
 
 cp .env.example .env             # chỉnh nếu cần
 ```
@@ -50,6 +51,9 @@ Biến môi trường trong `.env`:
 | `OLLAMA_BASE_URL`    | `http://localhost:11434` | Địa chỉ Ollama server          |
 | `OLLAMA_MODEL`       | `gemma4:e2b-it-qat`      | Model dùng để sinh câu trả lời |
 | `OLLAMA_NUM_PREDICT` | `512`                    | Số token tối đa mỗi lần sinh   |
+| `EMBEDDING_MODEL`    | `BAAI/bge-m3`            | Model embedding                |
+| `EMBEDDING_DEVICE`   | `cpu`                    | Thiết bị chạy embedding        |
+| `EMBEDDING_BATCH_SIZE` | `16`                   | Batch size khi embed           |
 
 ## Running Qdrant
 
@@ -80,14 +84,30 @@ Thử nhanh qua client của dự án:
 python -c "from app.llm.ollama_client import OllamaClient; print(OllamaClient().chat([{'role': 'user', 'content': 'Xin chào'}]))"
 ```
 
+## Embedding (BGE-M3)
+
+`app/embedding/bge_m3.py` → `BGEM3Embedder` sinh **dense (1024 chiều)** và **sparse (`sparse_indices`, `sparse_values`)** từ một lần chạy model, qua `FlagEmbedding`.
+
+```python
+from app.embedding.bge_m3 import BGEM3Embedder
+
+emb = BGEM3Embedder()
+emb.embed_documents(["đoạn 1", "đoạn 2"])   # list[EmbeddedText]
+emb.embed_query("câu hỏi")                  # EmbeddedText
+```
+
+- Model được load lười ở lần gọi đầu, nên `import app` không kéo `torch`.
+- **Mặc định chạy CPU**: `gemma4:e2b-it-qat` đã dùng ~2.77GB trên card 4GB, BGE-M3 fp16 cần thêm hơn 1GB nên không đủ VRAM. Chỉ đặt `EMBEDDING_DEVICE=cuda` nếu máy còn dư VRAM khi Ollama đang giữ model.
+- **Offline**: model tải một lần cần Internet (~2GB), sau đó đặt `HF_HUB_OFFLINE=1` để chạy hoàn toàn offline.
+
 ## Running Tests
 
 ```bash
 pytest                           # chạy toàn bộ test
-pytest -m "not integration"      # bỏ qua test cần Ollama đang chạy
+pytest -m "not integration"      # bỏ qua test cần Ollama / cần tải model BGE-M3
 ```
 
-Test đánh dấu `integration` sẽ tự bỏ qua nếu Ollama server không chạy.
+Test đánh dấu `integration` sẽ tự bỏ qua nếu Ollama server không chạy; test BGE-M3 cần đã cài `requirements-ml.txt` và tải model.
 
 ## Project Structure
 
@@ -98,6 +118,7 @@ Test đánh dấu `integration` sẽ tự bỏ qua nếu Ollama server không ch
 │   ├── ingestion/
 │   │   ├── pdf_parser.py        # parse_pdf: PDF -> list[PageContent]
 │   │   └── text_utils.py        # chuẩn hóa text (NFC)
+│   ├── embedding/bge_m3.py      # BGEM3Embedder (dense + sparse)
 │   ├── llm/ollama_client.py     # OllamaClient.chat
 │   ├── routers/                 # (chưa có endpoint)
 │   ├── services/                # (chưa có)
@@ -107,5 +128,6 @@ Test đánh dấu `integration` sẽ tự bỏ qua nếu Ollama server không ch
 ├── docs/
 ├── docker-compose.yml           # Qdrant
 ├── requirements.txt
+├── requirements-ml.txt          # FlagEmbedding (torch)
 └── .env.example
 ```
