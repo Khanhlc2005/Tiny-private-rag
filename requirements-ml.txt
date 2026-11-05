@@ -1,0 +1,2 @@
+# Chỉ cài khi chạy embedding
+FlagEmbedding

@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     chunk_size: int = 800
     chunk_overlap: int = 100
 
+    embedding_model: str = "BAAI/bge-m3"
+    embedding_device: str = "cpu"
+    embedding_batch_size: int = 16
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
