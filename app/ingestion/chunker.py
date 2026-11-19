@@ -1,5 +1,5 @@
-from pydantic import BaseModel
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from pydantic import BaseModel
 
 from app.core.config import settings
 from app.ingestion.pdf_parser import PageContent
