@@ -90,6 +90,9 @@ class OllamaClient:
                 json=payload,
                 timeout=120.0
             ) as response: 
+                # Đọc body trước khi raise error tránh che mất thông báo lỗi
+                if response.is_error:
+                    response.read()
                 response.raise_for_status()
 
                 for line in response.iter_lines():
