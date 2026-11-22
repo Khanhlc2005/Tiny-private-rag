@@ -32,7 +32,7 @@ def chunk_pages(
     chunks: list[Chunk] = []
     for page in pages:
         pieces = splitter.split_text(normalize_text(page.text))
-        pieces = [p for p in pieces if p.strip()]
+        pieces = [p for p in pieces if any(ch.isalpha() for ch in p)]
 
         for order, text in enumerate(pieces, start=1):
             chunks.append(
