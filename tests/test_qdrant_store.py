@@ -1,3 +1,4 @@
+"""Test QdrantStore. Test đánh dấu `integration` cần Qdrant đang chạy và tự skip nếu không."""
 import uuid
 from pathlib import Path
 
@@ -19,29 +20,45 @@ def make_chunk(source_file: str, index: int) -> ChunkRecord:
 
 
 @pytest.fixture
-def store():
+def store(qdrant_available):
     s = QdrantStore(collection=f"test_{uuid.uuid4().hex[:8]}")
     s.ensure_collection()
     yield s
     s.client.delete_collection(s.collection)
 
 
+@pytest.mark.integration
 def test_ensure_collection_idempotent(store):
     store.ensure_collection()  # lần 2 không lỗi
 
 
+@pytest.mark.integration
 def test_upsert_same_chunk_twice(store):
     store.upsert_chunks([make_chunk("a.pdf", 0)])
     store.upsert_chunks([make_chunk("a.pdf", 0)])
     assert store.count() == 1
 
 
+@pytest.mark.integration
 def test_delete_only_target_file(store):
     store.upsert_chunks(
         [make_chunk("a.pdf", 0), make_chunk("a.pdf", 1), make_chunk("b.pdf", 0)]
     )
     store.delete_by_source_file("a.pdf")
     assert store.list_sources() == {"b.pdf": 1}
+
+
+@pytest.mark.integration
+def test_list_sources_counts_chunks_per_file(store):
+    store.upsert_chunks(
+        [make_chunk("a.pdf", 0), make_chunk("a.pdf", 1), make_chunk("b.pdf", 0)]
+    )
+    assert store.list_sources() == {"a.pdf": 2, "b.pdf": 1}
+
+
+@pytest.mark.integration
+def test_list_sources_empty_collection(store):
+    assert store.list_sources() == {}
 
 
 def test_qdrant_down_raises_vietnamese_error():
