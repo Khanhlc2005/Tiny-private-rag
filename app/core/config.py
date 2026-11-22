@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     embedding_device: str = "cpu"
     embedding_batch_size: int = 16
 
+    retrieval_top_k: int = 5
+    retrieval_candidates: int = 20
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
