@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     retrieval_top_k: int = 5
     retrieval_candidates: int = 20
 
+    rag_max_context_chars: int = 5000
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
