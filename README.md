@@ -49,20 +49,21 @@ cp .env.example .env             # chỉnh nếu cần
 
 Biến môi trường trong `.env` (bỏ trống thì dùng giá trị mặc định):
 
-| Biến                   | Mặc định                 | Ý nghĩa                                         |
-| ---------------------- | ------------------------ | ----------------------------------------------- |
-| `OLLAMA_BASE_URL`      | `http://localhost:11434` | Địa chỉ Ollama server                           |
-| `OLLAMA_MODEL`         | `gemma4:e2b-it-qat`      | Model sinh câu trả lời                          |
-| `OLLAMA_NUM_PREDICT`   | `512`                    | Số token tối đa mỗi lần sinh                    |
-| `QDRANT_URL`           | `http://localhost:6333`  | Địa chỉ Qdrant                                  |
-| `QDRANT_COLLECTION`    | `tiny_rag_chunks`        | Tên collection chứa chunk                       |
-| `CHUNK_SIZE`           | `800`                    | Kích thước tối đa mỗi chunk (ký tự)             |
-| `CHUNK_OVERLAP`        | `100`                    | Số ký tự chồng lấn giữa hai chunk liền kề       |
-| `EMBEDDING_MODEL`      | `BAAI/bge-m3`            | Model embedding                                 |
-| `EMBEDDING_DEVICE`     | `cpu`                    | Thiết bị chạy embedding                         |
-| `EMBEDDING_BATCH_SIZE` | `16`                     | Batch size khi embed                            |
-| `RETRIEVAL_TOP_K`      | `5`                      | Số chunk trả về mỗi lần tìm                     |
-| `RETRIEVAL_CANDIDATES` | `20`                     | Số ứng viên mỗi nhánh (dense, sparse) trước RRF |
+| Biến                    | Mặc định                 | Ý nghĩa                                         |
+| ----------------------- | ------------------------ | ----------------------------------------------- |
+| `OLLAMA_BASE_URL`       | `http://localhost:11434` | Địa chỉ Ollama server                           |
+| `OLLAMA_MODEL`          | `gemma4:e2b-it-qat`      | Model sinh câu trả lời                          |
+| `OLLAMA_NUM_PREDICT`    | `512`                    | Số token tối đa mỗi lần sinh                    |
+| `QDRANT_URL`            | `http://localhost:6333`  | Địa chỉ Qdrant                                  |
+| `QDRANT_COLLECTION`     | `tiny_rag_chunks`        | Tên collection chứa chunk                       |
+| `CHUNK_SIZE`            | `800`                    | Kích thước tối đa mỗi chunk (ký tự)             |
+| `CHUNK_OVERLAP`         | `100`                    | Số ký tự chồng lấn giữa hai chunk liền kề       |
+| `EMBEDDING_MODEL`       | `BAAI/bge-m3`            | Model embedding                                 |
+| `EMBEDDING_DEVICE`      | `cpu`                    | Thiết bị chạy embedding                         |
+| `EMBEDDING_BATCH_SIZE`  | `16`                     | Batch size khi embed                            |
+| `RETRIEVAL_TOP_K`       | `5`                      | Số chunk trả về mỗi lần tìm                     |
+| `RETRIEVAL_CANDIDATES`  | `20`                     | Số ứng viên mỗi nhánh (dense, sparse) trước RRF |
+| `RAG_MAX_CONTEXT_CHARS` | `5000`                   | Số ký tự tối đa của context đưa vào prompt      |
 
 ## Running Qdrant
 
@@ -109,13 +110,7 @@ emb.embed_query("câu hỏi")                  # EmbeddedText
 
 ## Ingestion: nạp tài liệu
 
-Đặt PDF vào `data/` (nội dung thư mục này không được commit), bảo đảm Qdrant đang chạy, rồi chạy **từ thư mục gốc của repo**:
-
-```bash
-python -m scripts.ingest data/ten_file.pdf
-```
-
-Dùng `python -m scripts.ingest`, không dùng `python scripts/ingest.py` (lệnh sau lỗi `ModuleNotFoundError`).
+Đặt PDF vào `data/` (nội dung thư mục này không được commit) và bảo đảm Qdrant đang chạy.
 
 Luồng xử lý: `parse_pdf` → chunk → embed theo batch → ghi vào Qdrant. Log INFO cho biết thời gian từng bước.
 
@@ -128,18 +123,9 @@ Payload mỗi point: `source_file`, `page`, `chunk_id` (`<source_file>:<page>:<c
 
 ## Retrieval: tìm thử
 
-```bash
-python -m scripts.search "Câu hỏi cần tìm"
-python -m scripts.search "Câu hỏi cần tìm" --top-k 3
-python -m scripts.search "Câu hỏi cần tìm" --source ten_file.pdf   # chỉ tìm trong một file
-python -m scripts.search "Câu hỏi cần tìm" --dense-only            # bỏ nhánh sparse để so sánh
-```
-
-Kết quả gồm thứ hạng, điểm, tên file, trang, `chunk_id` và đoạn text xem trước.
-
 `HybridRetriever` (`app/retrieval/hybrid.py`) dùng Query API của Qdrant: hai nhánh `prefetch` (dense, sparse; mỗi nhánh lấy `RETRIEVAL_CANDIDATES` ứng viên), gộp bằng **RRF**, trả `RETRIEVAL_TOP_K` chunk. Collection rỗng trả về danh sách rỗng. Retriever không gọi LLM.
 
-Nhánh sparse là _lexical weights_ do BGE-M3 học (learned sparse), **không phải BM25 thuần**. Điểm hybrid là điểm RRF, không so sánh trực tiếp với điểm cosine của `--dense-only`.
+Nhánh sparse là _lexical weights_ do BGE-M3 học (learned sparse), **không phải BM25 thuần**. Điểm hybrid là điểm RRF.
 
 ## Project Structure
 
@@ -157,9 +143,6 @@ Nhánh sparse là _lexical weights_ do BGE-M3 học (learned sparse), **không p
 │   ├── services/ingestion_service.py  # ingest_pdf: parse -> chunk -> embed -> Qdrant
 │   ├── llm/ollama_client.py           # OllamaClient
 │   └── routers/                       # (chưa có endpoint)
-├── scripts/
-│   ├── ingest.py                      # CLI nạp một PDF
-│   └── search.py                      # CLI tìm thử
 ├── tests/                             # pytest
 ├── data/                              # PDF đầu vào (không commit)
 ├── docker-compose.yml                 # Qdrant
